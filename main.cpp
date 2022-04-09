@@ -1,8 +1,7 @@
 #include <iostream>
 #include <cmath>
 #include <vector>
-#include "util.hpp"
-
+#include "util.h"
 
 class MakeCoefficient
 {

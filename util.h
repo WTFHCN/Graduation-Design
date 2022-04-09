@@ -1,6 +1,7 @@
 #include <random>
 #include <time.h>
 #define LOWBIT(x) (x & -x)
+#define DEBUG(x) std::cout << x << "\n"
 namespace util
 {
     std::default_random_engine random(time(NULL));

@@ -1,32 +1,17 @@
 #include <iostream>
 #include <cmath>
 #include <vector>
-
-#include <random>
-#include <time.h>
-#define LOWBIT(x) (x & -x)
-namespace util
-{
-    std::default_random_engine random(time(NULL));
-    std::uniform_real_distribution<double> randOut(0.0, 1.0);
-    double getLap(double u, double b)
-    {
-        double x = randOut(random);
-        if (x < 0.5)
-            return b * std::log(2 * x) + u;
-        else
-            return u - b * std::log(2 - 2 * x);
-    }
-}
+#include <util.h>
 class PublishAlgorithm
 {
 protected:
     double e;
     double sum;
-    static std::vector<int> a;
+    std::vector<double> a;
 
 public:
     virtual double add(double val) {}
+    PublishAlgorithm(){};
     PublishAlgorithm(double _e) : e(_e){};
 };
 
@@ -58,38 +43,36 @@ class algorithm3 : public PublishAlgorithm
 {
 private:
     int N, B, q, r, cnt;
-
-    std::vector<int> block;
+    std::vector<double> block;
 
 public:
-    algorithm3(double _e, int n) : PublishAlgorithm(e), N(n), B(sqrt(n)), q(0), r(0), cnt(0), block(n / sqrt(n)) { a = std::vector<int>(n); }
+    algorithm3(double _e, int n) : PublishAlgorithm(_e), N(n), B(sqrt(n)), q(0), r(0), cnt(0), block(n / sqrt(n)) { a = std::vector<double>(n); }
     virtual double add(double val)
     {
         a[cnt++] = val;
-        block[q] += a[cnt];
-        r++;
-        q += (r == B);
+        block[q] += val;
+        q += (r + 1 == B);
+        r = (r + 1) % B;
         sum = 0;
         for (int i = 0; i < q; i++)
             sum += block[i] + util::getLap(0, e);
-        for (int i = q * r; i < cnt; i++)
+        for (int i = q * B; i < cnt; i++)
             sum += a[i] + util::getLap(0, e);
         return sum;
     }
 };
 
-class algorithm4
+class algorithm4 : public PublishAlgorithm
 {
 private:
-    double E, sum;
     int cnt, N;
-    std::vector<int> a;
 
 public:
-    algorithm4(double e, int n) : E(e), N(n), a(n), cnt(0) {}
+    algorithm4(double _e, int n) : PublishAlgorithm(_e), cnt(0), N(n) { a = std::vector<double>(n); }
 
     double add(double val)
     {
+        cnt++;
         for (int i = cnt; i <= N; i += LOWBIT(i))
         {
             a[i - 1] += val;
@@ -97,25 +80,25 @@ public:
         sum = 0;
         for (int i = cnt; i; i -= LOWBIT(i))
         {
-            sum += a[i - 1] + util::getLap(0, E);
+            sum += a[i - 1] + util::getLap(0, e);
         }
         return sum;
     }
 };
 int main()
 {
-    PublishAlgorithm *t;
-    // t[0] = new algorithm1(1);
-    // t[1] = new algorithm2(1);
-    // t[2] = new algorithm3(1, 10);
-    t = new algorithm1(1);
-    std::cout << t->add(1) << '\n';
-    // for (int i = 0; i < 10; i++)
-    // {
-    //     for (int j = 0; j < 3; j++)
-    //     {
-    //         std::cout << t[i]->add(i) << " ";
-    //     }
-    //     std::cout << '\n';
-    // }
+    PublishAlgorithm *t[4];
+    t[0] = new algorithm1(1);
+    t[1] = new algorithm2(1);
+    t[2] = new algorithm3(1, 100);
+    t[3] = new algorithm4(1, 100);
+    // std::cout << t[2]->add(1) << '\n';
+    for (int i = 0; i < 100; i++)
+    {
+        for (int j = 0; j < 4; j++)
+        {
+            std::cout << t[j]->add(i) << " ";
+        }
+        std::cout << '\n';
+    }
 }
