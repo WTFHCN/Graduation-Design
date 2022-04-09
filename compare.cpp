@@ -10,7 +10,7 @@ protected:
     std::vector<double> a;
 
 public:
-    virtual double add(double val) {}
+    virtual double add(double val) { throw "Please select a mechanism"; }
     PublishAlgorithm(){};
     PublishAlgorithm(double _e) : e(_e){};
 };
@@ -39,6 +39,14 @@ public:
     }
 };
 
+/*
+Using the Simple Counting Mechanism II as a building block,
+we describe the Two-Level Counting Mechanism. The idea is
+that when items from the stream come, we group them in
+contiguous blocks of size B, Within a block, we run the Simple
+Counting Mechanism II. On top of that, we run another Simple
+Counting Mechanism II, treating each block as a single element.
+*/
 class algorithm3 : public PublishAlgorithm
 {
 private:
@@ -62,6 +70,18 @@ public:
     }
 };
 
+/*
+We could extend the idea of the Two-Level Counting
+Mechanism to a Multi-level Counting Mechanism, and
+compute the optimal number of levels given T, the
+upper bound on time. However, we take a better approach
+called the Binary Mechanism. The idea is that at any
+time t, the counting mechanism internally groups the
+items that have arrived to form p-sums of different
+sizes. The precise grouping of the items depends on
+the binary representation of the number t – hence
+the name Binary Mechanism.
+*/
 class algorithm4 : public PublishAlgorithm
 {
 private:
@@ -69,7 +89,6 @@ private:
 
 public:
     algorithm4(double _e, int n) : PublishAlgorithm(_e), cnt(0), N(n) { a = std::vector<double>(n); }
-
     double add(double val)
     {
         cnt++;
