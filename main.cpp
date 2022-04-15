@@ -2,7 +2,7 @@
 #include <cmath>
 #include <vector>
 #include "util.h"
-
+#include "data.h"
 class MakeCoefficient
 {
 private:

@@ -1,7 +1,16 @@
 #include <iostream>
 #include <cmath>
 #include <vector>
-#include <util.h>
+#include <chrono>
+#include <random>
+#include <time.h>
+#include "util.h"
+#include "data.h"
+std::vector<std::string> algorithmName = {"reality", "Simple Counting Mechanism I",
+                                          "Simple Counting Mechanism II",
+                                          "Two-Level Counting Mechanism",
+                                          "Binary Counting Mechanism"};
+
 class PublishAlgorithm
 {
 protected:
@@ -12,7 +21,19 @@ protected:
 public:
     virtual double add(double val) { throw "Please select a mechanism"; }
     PublishAlgorithm(){};
-    PublishAlgorithm(double _e) : e(_e){};
+    PublishAlgorithm(double _e) : e(_e), sum(0){};
+    int getNum() { return a.size(); }
+};
+class algorithm0 : public PublishAlgorithm
+{
+public:
+    using PublishAlgorithm::PublishAlgorithm;
+    virtual double add(double val)
+    {
+        a.push_back(val);
+        sum += val;
+        return sum;
+    }
 };
 
 class algorithm1 : public PublishAlgorithm
@@ -23,7 +44,7 @@ public:
     {
         a.push_back(val);
         sum += val;
-        return sum + util::getLap(0, e);
+        return sum + util::getLap(0, 1 / (e / a.size()));
     }
 };
 
@@ -34,8 +55,8 @@ public:
     double add(double val)
     {
         a.push_back(val);
-        sum += val;
-        return sum + util::getLap(0, e);
+        sum += val + util::getLap(0, 1 / e);
+        return sum;
     }
 };
 
@@ -63,9 +84,9 @@ public:
         r = (r + 1) % B;
         sum = 0;
         for (int i = 0; i < q; i++)
-            sum += block[i] + util::getLap(0, e);
+            sum += block[i] + util::getLap(0, 1 / e);
         for (int i = q * B; i < cnt; i++)
-            sum += a[i] + util::getLap(0, e);
+            sum += a[i] + util::getLap(0, 1 / e);
         return sum;
     }
 };
@@ -99,25 +120,34 @@ public:
         sum = 0;
         for (int i = cnt; i; i -= LOWBIT(i))
         {
-            sum += a[i - 1] + util::getLap(0, e);
+            sum += a[i - 1] + util::getLap(0, 1 / (e / log2(N)));
         }
         return sum;
     }
 };
+
 int main()
 {
-    PublishAlgorithm *t[4];
-    t[0] = new algorithm1(1);
-    t[1] = new algorithm2(1);
-    t[2] = new algorithm3(1, 100);
-    t[3] = new algorithm4(1, 100);
-    // std::cout << t[2]->add(1) << '\n';
-    for (int i = 0; i < 100; i++)
+    int T = 100;
+    int NUM = 5;
+    double e = 0.1;
+    std::string csvName = "test.csv";
+    PublishAlgorithm *t[5];
+    t[0] = new algorithm0(e);
+    t[1] = new algorithm1(e);
+    t[2] = new algorithm2(e);
+    t[3] = new algorithm3(e, T);
+    t[4] = new algorithm4(e, T);
+    std::default_random_engine random(time(NULL));
+    std::uniform_int_distribution<int> dis1(0, 100);
+    std::vector<std::vector<double>> testData(NUM, std::vector<double>(T));
+    for (int i = 0; i < T; i++)
     {
-        for (int j = 0; j < 4; j++)
+        double c = dis1(random);
+        for (int j = 0; j < NUM; j++)
         {
-            std::cout << t[j]->add(i) << " ";
+            testData[j][i] = t[j]->add(c);
         }
-        std::cout << '\n';
     }
+    wirteCsv(csvName, algorithmName, testData);
 }
