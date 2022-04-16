@@ -17,6 +17,7 @@ double calcError(std::vector<double> &reality, std::vector<double> &ans)
 void wirteCsv(std::string &fileName, std::vector<std::string> &name, std::vector<std::vector<double>> &data)
 {
     std::ofstream outFile;
+    assert(name.size() == data.size());
     outFile.open(fileName, std::ios::out);
     for (int i = 1; i < name.size(); i++)
     {
