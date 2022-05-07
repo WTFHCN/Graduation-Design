@@ -49,7 +49,7 @@ public:
     {
         a.push_back(val);
         sum += val;
-        return sum + util::getLap(0, 1 / (e / a.size()));
+        return sum + util::GetLap(0, 1 / (e / a.size()));
     }
 };
 
@@ -60,7 +60,7 @@ public:
     double add(double val)
     {
         a.push_back(val);
-        sum += val + util::getLap(0, 1 / e);
+        sum += val + util::GetLap(0, 1 / e);
         return sum;
     }
 };
@@ -89,9 +89,9 @@ public:
         r = (r + 1) % B;
         sum = 0;
         for (int i = 0; i < q; i++)
-            sum += block[i] + util::getLap(0, 1 / e);
+            sum += block[i] + util::GetLap(0, 1 / e);
         for (int i = q * B; i < cnt; i++)
-            sum += a[i] + util::getLap(0, 1 / e);
+            sum += a[i] + util::GetLap(0, 1 / e);
         return sum;
     }
 };
@@ -127,7 +127,7 @@ public:
         sum = 0;
         for (int i = cnt; i; i -= LOWBIT(i))
         {
-            sum += psum[i - 1] + util::getLap(0, 1 / (e / log2(N)));
+            sum += psum[i - 1] + util::GetLap(0, 1 / (e / log2(N)));
         }
         return sum;
     }
@@ -183,23 +183,23 @@ private:
             if (fr - fl <= 1)
             {
                 for (int i = ql; i <= qr; i++)
-                    res += a[i] + util::getLap(0, 1 / (e / log2(N / len)));
+                    res += a[i] + util::GetLap(0, 1 / (e / log2(N / len)));
             }
             else
             {
                 for (int i = fl + 1; i < fr; i++)
-                    res += block[pos][i] + util::getLap(0, 1 / (e / log2(N / len)));
+                    res += block[pos][i] + util::GetLap(0, 1 / (e / log2(N / len)));
                 for (int i = fr * B + L; i <= qr; i++)
-                    res += a[i] + util::getLap(0, 1 / (e / log2(N / len)));
+                    res += a[i] + util::GetLap(0, 1 / (e / log2(N / len)));
                 for (int i = ql; i < (fl + 1) * B + L; i++)
-                    res += a[i] + util::getLap(0, 1 / (e / log2(N / len)));
+                    res += a[i] + util::GetLap(0, 1 / (e / log2(N / len)));
             }
 
             return res;
         }
         else if (ql <= L && R <= qr)
         {
-            return psum[pos] + util::getLap(0, 1 / (e / log2(N / len)));
+            return psum[pos] + util::GetLap(0, 1 / (e / log2(N / len)));
         }
         int mid = (L + R) / 2;
         if (qr <= mid)

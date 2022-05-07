@@ -169,7 +169,6 @@ pair<double, MatrixXd> ComputeT(MatrixXd W, MatrixXd Q, MatrixXd T, double C, do
 }
 VectorXd L1Projection(VectorXd v, double b)
 {
-    // vector V = vector<double>(v.data(), v.data() + v.size());
     auto u = v;
     sort(u.begin(), u.end(), greater<double>());
     u = u.cwiseAbs();
@@ -233,12 +232,12 @@ MatrixXd UpdateT(MatrixXd W, MatrixXd Q, MatrixXd T, double C, double beta, Matr
             if (r_sum1 <= threshold)
             {
                 bFlag = 1;
-                printf("the gradient step makes little improvement");
+                // printf("the gradient step makes little improvement");
                 break;
             }
             if (l_sum1 - r_sum1 * L <= 0)
             {
-                printf("L smooth");
+                // printf("L smooth");
                 break;
             }
             L = max(2 * L, l_sum1 / r_sum1);
@@ -254,7 +253,7 @@ MatrixXd UpdateT(MatrixXd W, MatrixXd Q, MatrixXd T, double C, double beta, Matr
         xxp = T - xp;
         if (bFlag)
         {
-            printf("\n The program terminates as the gradient step changes the solution very small.");
+            // printf("\n The program terminates as the gradient step changes the solution very small.");
             break;
         }
     }
@@ -265,9 +264,10 @@ pair<MatrixXd, MatrixXd> SolveApproximatly(MatrixXd W, MatrixXd Q, MatrixXd T, d
 {
     for (int i = 0; i < 5; i++)
     {
-        UpdateT(W, Q, T, C, beta, pi, WFnorm);
-        UpdateQ(W, Q, T, C, beta, pi, WFnorm);
+        T = UpdateT(W, Q, T, C, beta, pi, WFnorm);
+        Q = UpdateQ(W, Q, T, C, beta, pi, WFnorm);
     }
+    return make_pair(Q, T);
 }
 
 double ComputeExpectedError(MatrixXd Q, double C)
@@ -284,41 +284,57 @@ double ComputeExpectedError(MatrixXd Q, double C)
 // Q: m x r
 // T: r x n
 
-pair<MatrixXd, MatrixXd> LowRankDP(MatrixXd W, double r = 0.0, double err_eps = 0.01, int max_iter = 100)
+pair<MatrixXd, MatrixXd> LowRankDP(MatrixXd W, int r = 0, double err_eps = 0.01, int max_iter = 100)
 {
+    // cout << W << '\n';
     FullPivLU<MatrixXd> lu_decomp(W);
     lu_decomp.setThreshold(err_eps);
     if (r == 0.0)
         r = 1.2 * lu_decomp.rank();
-    int WiseInit = 1;
+    int WiseInit = 0;
     int IncreaseRank = 0;
     int UpdateRule = 1;
     int factor = 5;
     int n = W.rows();
     int m = W.cols();
-    double WFnorm = W.squaredNorm();
+    double WFnorm = W.norm();
     MatrixXd Q, T;
+
     if (WiseInit)
     {
+        JacobiSVD<MatrixXd> svd(W, ComputeFullU | ComputeFullV);
+        auto S = svd.matrixU();
+        auto D = svd.matrixV();
+        auto V = svd.singularValues();
+
+        Q = S * V;
+        T = D.transpose();
+        int r1 = Q.cols();
+        if (r < r1)
+        {
+        }
+        Q = Q * sqrt(r);
+        T = T / sqrt(r);
     }
     else
     {
         Q = GetNormalMatrix(n, r);
         T = GetNormalMatrix(r, m);
     }
+
     printf("n:%ld, m:%ld, r:%ld, r:%ld\n", Q.rows(), T.cols(), T.rows(), Q.cols());
     MatrixXd pi = MatrixXd::Zero(W.rows(), W.cols());
     double beta = 1;
     double C = 1;
     double M = 1e10;
-    int increasement = 0; //!!!!!!
-    if (IncreaseRank)
-    {
-        double rr = MyRank(W, 0.01);
-        int increase = floor(0.2 * rr);
-        if (increasement == 0)
-            increasement = 1;
-    }
+    // int increasement = 0; //!!!!!!
+    // if (IncreaseRank)
+    // {
+    //     double rr = MyRank(W, 0.01);
+    //     int increase = floor(0.2 * rr);
+    //     if (increasement == 0)
+    //         increasement = 1;
+    // }
     int flag = 1;
     int inner_iter = 0;
     int outer_iter = 0;
@@ -330,10 +346,13 @@ pair<MatrixXd, MatrixXd> LowRankDP(MatrixXd W, double r = 0.0, double err_eps = 
         inner_iter++;
         outer_iter++;
         double t11 = clock();
+        // cout << "begin solve\n";
         auto [Q1, T1] = SolveApproximatly(W, Q, T, C, beta, pi, WFnorm);
+        // cout << "end solve\n";
+
         Q = Q1;
         T = T1;
-        curr_err = (W - Q * T).squaredNorm();
+        curr_err = (W - Q * T).norm();
         if (UpdateRule == 1)
         {
             if (outer_iter % 8 == 0)
@@ -345,7 +364,7 @@ pair<MatrixXd, MatrixXd> LowRankDP(MatrixXd W, double r = 0.0, double err_eps = 
                 last_err = curr_err;
             }
         }
-        double improve = WFnorm * WFnorm - Q.squaredNorm() * Q.squaredNorm();
+        double improve = WFnorm * WFnorm - Q.squaredNorm();
         if (curr_err < err_eps)
         {
             if (IncreaseRank == 0)
@@ -355,32 +374,33 @@ pair<MatrixXd, MatrixXd> LowRankDP(MatrixXd W, double r = 0.0, double err_eps = 
         }
         pi = pi + beta * (W - Q * T);
         double t22 = clock();
-        printf("iter: %d, |W-QT|_F: %.5f, beta:%.2f, improve: %.2e, cur rank:%ld, time(s): %f\n", outer_iter, curr_err, beta, improve, T.rows(), t22 - t11);
+        printf("iter: %d, |W-QT|_F: %.5f, beta:%.2f, improve: %.2e, cur rank:%ld, time(s): %f\n", outer_iter, curr_err, beta, improve, T.rows(), double(t22 - t11) / CLOCKS_PER_SEC);
         if (inner_iter == max_iter || beta > M)
         {
             if (IncreaseRank == 0)
                 break;
-            inner_iter = 0;
-            int cur_r = T.rows();
-            int set_rank = cur_r + increasement;
-            set_rank = min(set_rank, int(W.cols()));
-            // Q(:,(cur_r+1):set_rank)=0.001;
-            // T((cur_r+1):set_rank,:)=0.001;
-            beta = 10;
-            pi = MatrixXd::Zero(W.rows(), W.cols());
-            last_err = inf;
-            continue;
+            // inner_iter = 0;
+            // int cur_r = T.rows();
+            // int set_rank = cur_r + increasement;
+            // set_rank = min(set_rank, int(W.cols()));
+            // Q.middleCols(cur_r + 1, set_rank - (cur_r + 1) + 1) = MatrixXd::Constant(T.rows(), set_rank - (cur_r + 1) + 1, 0.001);
+            // T.middleRows(cur_r + 1, set_rank - (cur_r + 1) + 1) = MatrixXd::Constant(set_rank - (cur_r + 1) + 1, T.cols(), 0.001);
+
+            // beta = 10;
+            // pi = MatrixXd::Zero(W.rows(), W.cols());
+            // last_err = inf;
+            // continue;
         }
     }
     double t2 = clock();
-    double improve = WFnorm * WFnorm - Q.squaredNorm() * Q.squaredNorm();
+    double improve = WFnorm * WFnorm - Q.squaredNorm();
     if (improve < 0 || curr_err > 0.1)
     {
         flag = -1;
         printf("LowRankDP Fail!\n");
     }
-
-    // fprintf("gamma: %f, Sen: %f, W: %f, Q: %f, IError:%f, ExpectedError:%f, totaltime:%f\n", ... norm(W - Q * T, 'fro'), L1sensitivity(T), WFnorm ^ 2, norm(Q, 'fro') ^ 2, ComputeExpectedError(W, 1), ComputeExpectedError(Q, C), ts);
+    printf("gamma: %f, Sen: %f, W: %f, Q: %f, IError:%f, ExpectedError:%f, totaltime:%f\n", (W - Q * T).norm(), L1sensitivity(T), WFnorm * WFnorm, Q.squaredNorm(), ComputeExpectedError(W, 1), ComputeExpectedError(Q, L1sensitivity(T)), double(t2 - t1) / CLOCKS_PER_SEC);
+    return make_pair(Q, T);
 }
 
 int main()
@@ -388,22 +408,32 @@ int main()
     // MatrixXd m = MatrixXd::Random(4, 4);
 
     // cout << m << '\n';
-    // m = m.array() - 1.5;
+    // m.middleCols(1, 2) = MatrixXd::Constant(m.rows(), 2, 233.0);
     // cout << m << '\n';
     // auto v = m.col(1);
     // m = m.cwiseMax(0.0);
     // cout << m << endl;
-    // // sort(v.begin(), v.end(), greater<double>());
-    // // cout << v << endl;
-    int N = 10;
-    int M = 128;
+    // sort(v.begin(), v.end(), greater<double>());
+    // cout << v << endl;
+    int N = 5;
+    int M = 10;
+    // cin >> N >> M;
+    // MatrixXd W = MatrixXd::Zero(N, M);
+    // for (int i = 0; i < N; i++)
+    //     for (int j = 0; j <= i; j++)
+    //         W(i, j) = 1.0;
     MatrixXd W = MatrixXd::Random(N, M).unaryExpr([&](double x) -> double
-                                                  { return sign(x); });
+                                                  { return double(x > 0); });
+    // W << 1, 1, 1, 1, 1, 1, 0, 1, 0, 0, 1, 1, 1, 0, 1;
     MatrixXd domain_x = MatrixXd::Random(M, 1).unaryExpr([](double x) -> double
                                                          {if(x<0)return 0.; return x; });
     domain_x = 10 * domain_x;
     auto [Q, T] = LowRankDP(W);
-
+    cout << W << '\n';
+    cout << "Q:\n";
+    cout << Q << '\n';
+    cout << "T:\n";
+    cout << T << '\n';
     int times = 20;
     double epsi = 0.1;
 

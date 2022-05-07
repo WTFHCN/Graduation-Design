@@ -86,6 +86,9 @@
         "cinttypes": "cpp",
         "filesystem": "cpp",
         "__functional_03": "cpp",
-        "numbers": "cpp"
+        "numbers": "cpp",
+        "typeindex": "cpp",
+        "variant": "cpp",
+        "any": "cpp"
     }
 }

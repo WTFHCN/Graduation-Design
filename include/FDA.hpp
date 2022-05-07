@@ -11,7 +11,7 @@ private:
     int N, M;
 
 public:
-    MakeCoefficient(int m) : M(m), err(1 << m), lamda(1 << m), N(1 << m)
+    MakeCoefficient(int m) : M(m), err(m + 1), lamda(m + 1), N(1 << m)
     {
         err[1] = 1;
         for (int i = 2; i < err.size(); i++)
@@ -30,7 +30,6 @@ public:
 
     double getCof(int k)
     {
-
         if (k < 1 || k >= N)
         {
             return 0;
@@ -54,7 +53,6 @@ public:
             }
             K /= 2;
         }
-
         return ans;
     }
     double getErr()
@@ -72,14 +70,14 @@ private:
     int N, M, cnt;
 
 public:
-    FDA(int m, int e) : cnt(0), M(m), a((1 << m) + 1), NoiCn((1 << m) + 1), N(1 << m), e(e), coefficient(m){};
+    FDA(int m, double e) : cnt(0), M(m), a((1 << m) + 1), NoiCn((1 << m) + 1), N(1 << m), e(e), coefficient(m){};
 
     void addVal(double val)
     {
         cnt++;
         for (int i = cnt; i <= N; i += LOWBIT(i))
             a[i] += val;
-        NoiCn[cnt] = coefficient.getCof(cnt) * a[cnt] + util::getLap(0, e);
+        NoiCn[cnt] = coefficient.getCof(cnt) * a[cnt] + util::GetLap(0, 1 / e);
     }
     double getReal()
     {
@@ -97,23 +95,18 @@ public:
     }
 };
 
-int main()
-{
-    int m;
-    std::cout << "请输入数据容量参数m(容量为2^m-1): \n";
-    std::cin >> m;
-    double e;
-    std::cout << "请输入隐私参数e:\n";
-    std::cin >> e;
+// int main()
+// {
+//     int m = 3;
+//     double e = 1;
+//     FDA test(m, e);
 
-    FDA test(m, e);
-
-    std::cout << "请输入要添加的数据:\n";
-    for (int i = 1; i < (1 << m); i++)
-    {
-        double val;
-        std::cin >> val;
-        test.addVal(val);
-        std::cout << "第" << i << "次添加数据后，结果是" << test.query() << "，真实值为" << test.getReal() << '\n';
-    }
-}
+//     std::cout << "请输入要添加的数据:\n";
+//     for (int i = 1; i < (1 << m); i++)
+//     {
+//         double val;
+//         std::cin >> val;
+//         test.addVal(val);
+//         std::cout << "第" << i << "次添加数据后，结果是" << test.query() << "，真实值为" << test.getReal() << '\n';
+//     }
+// }
