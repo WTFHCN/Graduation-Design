@@ -5,8 +5,9 @@
 #include <random>
 #include <time.h>
 #include <optional>
-#include "util.h"
 #include "data.h"
+#include "FDA.hpp"
+
 std::vector<std::string> algorithmName = {
     "reality",
     "Simple Counting Mechanism I",
@@ -14,6 +15,7 @@ std::vector<std::string> algorithmName = {
     "Two-Level Counting Mechanism",
     "Binary Counting Mechanism",
     "Hybrid Mechanism",
+    "FDA Mechanism",
 };
 
 class PublishAlgorithm
@@ -80,7 +82,7 @@ private:
     std::vector<double> block;
 
 public:
-    algorithm3(double _e, int n) : PublishAlgorithm(_e), N(n), B(sqrt(n)), q(0), r(0), cnt(0), block(n / sqrt(n)) { a = std::vector<double>(n); }
+    algorithm3(double _e, int n) : PublishAlgorithm(_e), N(n), B(sqrt(n)), q(0), r(0), cnt(0), block(n / sqrt(n) + 2) { a = std::vector<double>(n); }
     virtual double add(double val)
     {
         a[cnt++] = val;
@@ -154,7 +156,7 @@ private:
             int t = R - L + 1;
             int B = sqrt(t);
             if (!block[pos].size())
-                block[pos].resize(t / B + (t % B != 0));
+                block[pos].resize(t / B + 2);
             int q = (k - L) / B;
             block[pos][q] += a[k];
             psum[pos] += a[k];
@@ -175,7 +177,7 @@ private:
             int t = R - L + 1;
             int B = sqrt(t);
             if (!block[pos].size())
-                block[pos].resize(t / B + (t % B != 0));
+                block[pos].resize(t / B + 2);
 
             int fl = (ql - L) / B;
             int fr = (qr - L) / B;
@@ -220,31 +222,76 @@ public:
         return queryInTree(0, a.size() - 1, 1, 0, N - 1);
     }
 };
-
-int main()
+class algorithm6 : public PublishAlgorithm
 {
-    int T = 256;
-    int NUM = 6;
+private:
+    std::vector<double> c;
+    std::vector<double> NoiCn;
+    MakeCoefficient coefficient;
+    int N, M, cnt;
+
+public:
+    algorithm6(double _e, int m) : PublishAlgorithm(_e), cnt(0), M(m), c((1 << m) + 1), NoiCn((1 << m) + 1), N(1 << m), coefficient(m){};
+
+    double add(double val)
+    {
+        // std::cout << val << "\n";
+        a.push_back(val);
+        cnt++;
+        for (int i = cnt; i <= N; i += LOWBIT(i))
+            c[i] += val;
+        NoiCn[cnt] = coefficient.getCof(cnt) * c[cnt] + util::GetLap(0, 1 / e);
+        return query();
+    }
+    double getReal()
+    {
+        double ans = 0;
+        for (int i = cnt; i; i -= LOWBIT(i))
+            ans += c[i];
+        return ans;
+    }
+    double query()
+    {
+        double ans = 0;
+        for (int i = cnt; i; i -= LOWBIT(i))
+            ans += NoiCn[i] / coefficient.getCof(i);
+        return ans;
+    }
+};
+
+void CensusAgeTest(int M)
+{
+    int T = (1 << M) - 1;
+    int NUM = 7;
     double e = 1;
-    std::string csvName = "test.csv";
-    PublishAlgorithm *t[6];
+    std::string ouputErrorName = "test.csv";
+    std::string csvName = "census.csv";
+    std::vector<PublishAlgorithm *> t(NUM);
     t[0] = new algorithm0(e);
     t[1] = new algorithm1(e);
     t[2] = new algorithm2(e);
     t[3] = new algorithm3(e, T);
     t[4] = new algorithm4(e, T);
-    t[5] = new algorithm5(e, T, 32);
-
-    std::default_random_engine random(time(NULL));
-    std::uniform_int_distribution<int> dis1(0, 100);
-    std::vector<std::vector<double>> testData(NUM, std::vector<double>(T));
+    t[5] = new algorithm5(e, T, (1 << (M / 2)));
+    t[6] = new algorithm6(e, M);
+    auto CensusList = ReadCensusCsv();
+    // std::cout << CensusList.size() << '\n';
+    assert(int(CensusList.size()) >= T);
+    // showCensus(CensusList);
+    std::vector<std::vector<double>>
+        testData(NUM, std::vector<double>(T));
     for (int i = 0; i < T; i++)
     {
-        double c = dis1(random);
         for (int j = 0; j < NUM; j++)
         {
-            testData[j][i] = t[j]->add(c);
+            // std::cout << i << " " << j << '\n';
+            testData[j][i] = t[j]->add(CensusList[i].age);
         }
     }
-    wirteCsv(csvName, algorithmName, testData);
+    std::cout << "begin to write in csv\n";
+    WirteCsv(ouputErrorName, algorithmName, testData);
+}
+int main()
+{
+    CensusAgeTest(13);
 }

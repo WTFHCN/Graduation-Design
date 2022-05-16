@@ -6,7 +6,7 @@ from pandas import option_context
 from pyomo.environ import *
 import numpy as np
 N = 10
-path = "/Users/nacn/Graduation-Design/ipopt-osx/ipopt"
+# path = "/Users/nacn/Graduation-Design/ipopt-osx/ipopt"
 Q = [[0 for i in range(N)] for j in range(N)]
 for i in range(N):
     for j in range(i+1):
@@ -49,7 +49,7 @@ model.c2 = Constraint(model.J, rule=c2_rule)
 model.obj = Objective(rule=obj_rule, sense=minimize)
 
 
-opt = SolverFactory('ipopt', executable=path)
+opt = SolverFactory('ipopt')
 opt.options['max_iter'] = 50
 # model.pprint()
 opt.solve(model, tee=True)

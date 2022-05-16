@@ -1,6 +1,7 @@
 #include <Eigen/Dense>
 #include <Eigen/Core>
 #include "FDA.hpp"
+#include "util.h"
 #include <gtest/gtest.h>
 
 using namespace std;
@@ -39,7 +40,8 @@ TEST(testFDA, FDA_m_3)
 
     auto BB = B * P.inverse();
     auto LL = P * L;
-
+    // cout << error(BB, LL) << '\n';
+    // cout << error(B, L) << '\n';
     EXPECT_LE(error(BB, LL), error(B, L));
 }
 int main(int argc, char *argv[])

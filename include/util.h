@@ -15,4 +15,14 @@ namespace util
         else
             return u - b * std::log(2 - 2 * x);
     }
+    double CalcError(std::vector<double> &reality, std::vector<double> &ans)
+    {
+        assert(reality.size() == ans.size());
+        double res = 0;
+        for (int i = 0; i < ans.size(); i++)
+        {
+            res += (reality[i] - ans[i]) * (reality[i] - ans[i]);
+        }
+        return sqrt(double(res / reality.size()));
+    }
 }

@@ -1,8 +1,7 @@
 #include <iostream>
 #include <cmath>
 #include <vector>
-#include "util.h"
-#include "data.h"
+
 class MakeCoefficient
 {
 private:
@@ -16,9 +15,9 @@ public:
         err[1] = 1;
         for (int i = 2; i < err.size(); i++)
         {
-            double a = pow(err[i - 1], 1 / 3.0);
+            double c = pow(err[i - 1], 1 / 3.0);
             double b = pow(1.0 * (1 << (i - 1)), 1 / 3.0);
-            err[i] = (a + b) * (a + b) * (a + b) + err[i - 1];
+            err[i] = (c + b) * (c + b) * (c + b) + err[i - 1];
         }
 
         lamda[1] = 0;
@@ -58,40 +57,6 @@ public:
     double getErr()
     {
         return err[M];
-    }
-};
-class FDA
-{
-private:
-    std::vector<double> a;
-    std::vector<double> NoiCn;
-    MakeCoefficient coefficient;
-    double e;
-    int N, M, cnt;
-
-public:
-    FDA(int m, double e) : cnt(0), M(m), a((1 << m) + 1), NoiCn((1 << m) + 1), N(1 << m), e(e), coefficient(m){};
-
-    void addVal(double val)
-    {
-        cnt++;
-        for (int i = cnt; i <= N; i += LOWBIT(i))
-            a[i] += val;
-        NoiCn[cnt] = coefficient.getCof(cnt) * a[cnt] + util::GetLap(0, 1 / e);
-    }
-    double getReal()
-    {
-        double ans = 0;
-        for (int i = cnt; i; i -= LOWBIT(i))
-            ans += a[i];
-        return ans;
-    }
-    double query()
-    {
-        double ans = 0;
-        for (int i = cnt; i; i -= LOWBIT(i))
-            ans += NoiCn[i] / coefficient.getCof(i);
-        return ans;
     }
 };
 
