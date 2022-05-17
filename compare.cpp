@@ -7,7 +7,8 @@
 #include <optional>
 #include "data.h"
 #include "FDA.hpp"
-
+const int NUM = 7;
+std::string const csvName = "census.csv";
 std::vector<std::string> algorithmName = {
     "reality",
     "Simple Counting Mechanism I",
@@ -235,7 +236,6 @@ public:
 
     double add(double val)
     {
-        // std::cout << val << "\n";
         a.push_back(val);
         cnt++;
         for (int i = cnt; i <= N; i += LOWBIT(i))
@@ -259,39 +259,57 @@ public:
     }
 };
 
-void CensusAgeTest(int M)
+void CensusAgeTest(int M, double e, std::vector<std::vector<double>> &errorList)
 {
     int T = (1 << M) - 1;
-    int NUM = 7;
-    double e = 1;
-    std::string ouputErrorName = "test.csv";
-    std::string csvName = "census.csv";
-    std::vector<PublishAlgorithm *> t(NUM);
-    t[0] = new algorithm0(e);
-    t[1] = new algorithm1(e);
-    t[2] = new algorithm2(e);
-    t[3] = new algorithm3(e, T);
-    t[4] = new algorithm4(e, T);
-    t[5] = new algorithm5(e, T, (1 << (M / 2)));
-    t[6] = new algorithm6(e, M);
     auto CensusList = ReadCensusCsv();
-    // std::cout << CensusList.size() << '\n';
     assert(int(CensusList.size()) >= T);
-    // showCensus(CensusList);
     std::vector<std::vector<double>>
         testData(NUM, std::vector<double>(T));
-    for (int i = 0; i < T; i++)
+
+    int tt = 10;
+
+    std::vector<double> error(NUM);
+    for (int t = 0; t < tt; t++)
     {
-        for (int j = 0; j < NUM; j++)
+        std::vector<PublishAlgorithm *> algorithmMechanism(NUM);
+        algorithmMechanism[0] = new algorithm0(e);
+        algorithmMechanism[1] = new algorithm1(e);
+        algorithmMechanism[2] = new algorithm2(e);
+        algorithmMechanism[3] = new algorithm3(e, T);
+        algorithmMechanism[4] = new algorithm4(e, T);
+        algorithmMechanism[5] = new algorithm5(e, T, 32);
+        algorithmMechanism[6] = new algorithm6(e, M);
+        for (int i = 0; i < T; i++)
         {
-            // std::cout << i << " " << j << '\n';
-            testData[j][i] = t[j]->add(CensusList[i].age);
+            for (int j = 0; j < NUM; j++)
+            {
+                testData[j][i] = algorithmMechanism[j]->add(CensusList[i].age);
+            }
+        }
+        for (int j = 1; j < NUM; j++)
+        {
+            error[j] += util::CalcError(testData[0], testData[j]);
         }
     }
-    std::cout << "begin to write in csv\n";
-    WirteCsv(ouputErrorName, algorithmName, testData);
+    for (int j = 1; j < NUM; j++)
+    {
+        errorList[j][M] = error[j] / tt;
+    }
+    // WirteCsv(ouputErrorName, algorithmName, testData);
+}
+void test1()
+{
+    std::string AgeTestName = "AgeTest.csv";
+    int maxM = 14;
+    std::vector errorList(NUM, std::vector<double>(maxM));
+    for (int i = 8; i < maxM; i++)
+    {
+        CensusAgeTest(i, 1.0, errorList);
+    }
+    WirteCsv(AgeTestName, algorithmName, errorList);
 }
 int main()
 {
-    CensusAgeTest(13);
+    test1();
 }

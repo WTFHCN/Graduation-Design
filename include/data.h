@@ -5,22 +5,23 @@
 #include <vector>
 #include <assert.h>
 #include "util.h"
-void WirteCsv(std::string &fileName, std::vector<std::string> &name, std::vector<std::vector<double>> &data)
+void WirteCsv(std::string &fileName, std::vector<std::string> &name, std::vector<std::vector<double>> &error)
 {
     std::ofstream outFile;
     // assert(name.size() == data.size());
-    // outFile.open(fileName, std::ios::out);
-    for (int i = 1; i < data.size(); i++)
+    outFile.open(fileName, std::ios::out);
+    for (int i = 1; i < error.size(); i++)
     {
         // std::std::cout << name[i] << '\n';
-        std::cout << name[i];
-        // for (int j = 0; j < data[i].size(); j++)
-        // {
-        std::cout << std::setprecision(6);
-        std::cout << ',' << util::CalcError(data[0], data[i]);
-        // }
-        std::cout << "\n";
+        outFile << name[i];
+        for (int j = 5; j < error[i].size(); j++)
+        {
+            outFile << std::setprecision(6);
+            outFile << ',' << error[i][j];
+        }
+        outFile << "\n";
     }
+    outFile.close();
 }
 struct CensusData
 {

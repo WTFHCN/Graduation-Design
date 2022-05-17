@@ -11,7 +11,7 @@ def lowbit(x):
     return (-x) & x
 
 
-N = 10
+N = 4
 L = np.random.randint(low=N, size=N)
 R = np.random.randint(low=N, size=N)
 # path = "/Users/nacn/Graduation-Design/ipopt-osx/ipopt"
@@ -19,18 +19,23 @@ R = np.random.randint(low=N, size=N)
 B = [[0 for i in range(N)] for j in range(N)]
 M = [[0 for i in range(N)] for j in range(N)]
 
+# for i in range(1, N+1):
+#     if(L[i-1] > R[i-1]):
+#         L[i-1], R[i-1] = R[i-1], L[i-1]
+#     j = R[i-1]+1
+
+#     while j > 0:
+#         B[i-1][j-1] += 1.0
+#         j -= lowbit(j)
+
+#     j = L[i-1]
+#     while j > 0:
+#         B[i-1][j-1] -= 1.0
+#         j -= lowbit(j)
 for i in range(1, N+1):
-    if(L[i-1] > R[i-1]):
-        L[i-1], R[i-1] = R[i-1], L[i-1]
-    j = R[i-1]+1
-
+    j = i
     while j > 0:
-        B[i-1][j-1] += 1.0
-        j -= lowbit(j)
-
-    j = L[i-1]
-    while j > 0:
-        B[i-1][j-1] -= 1.0
+        B[i-1][j-1] = 1.0
         j -= lowbit(j)
 
 for i in range(1, N+1):
@@ -83,9 +88,9 @@ for i in range(N):
 for i in range(N):
     for j in range(N):
         M[i][j] *= value(model.lamda[i])
-# print(B)
-# print(M)
-# print(B.dot(M))
+print(B)
+print(M)
+print(B.dot(M))
 ansL = np.array([value(model.lamda[i])for i in model.I])
 # # ansB = ansB.reshape((N, N))
 print(ansL)
