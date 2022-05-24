@@ -10,11 +10,11 @@ void WirteCsv(std::string &fileName, std::vector<std::string> &name, std::vector
     std::ofstream outFile;
     // assert(name.size() == data.size());
     outFile.open(fileName, std::ios::out);
-    for (int i = 1; i < error.size(); i++)
+    for (int i = 3; i < error.size(); i++)
     {
         // std::std::cout << name[i] << '\n';
         outFile << name[i];
-        for (int j = 5; j < error[i].size(); j++)
+        for (int j = 8; j < error[i].size(); j++)
         {
             outFile << std::setprecision(6);
             outFile << ',' << error[i][j];
@@ -22,6 +22,47 @@ void WirteCsv(std::string &fileName, std::vector<std::string> &name, std::vector
         outFile << "\n";
     }
     outFile.close();
+}
+
+struct RetailData
+{
+    int StockCode;
+    std::string Description;
+    int Quantity;
+    double UnitPrice;
+    std::string Country;
+};
+std::vector<RetailData> ReadRetailCsv(std::string fileName = "Retail.csv")
+{
+    std::vector<RetailData> CensusList;
+    std::ifstream fin(fileName);
+
+    std::string line;
+    getline(fin, line);
+    while (getline(fin, line))
+    {
+
+        std::istringstream sin(line);
+        // std::cout << line << '\n';
+        std::string info;
+        std::vector<std::string> infoList;
+
+        while (getline(sin, info, ','))
+        {
+            infoList.push_back(info);
+        }
+
+        RetailData dataBase;
+        dataBase.StockCode = atoi(infoList[2].c_str());
+        dataBase.Description = infoList[2];
+
+        dataBase.Quantity = atoi(infoList[3].c_str());
+        dataBase.UnitPrice = atof(infoList[5].c_str());
+        dataBase.Country = infoList[7].c_str();
+        
+        CensusList.push_back(dataBase);
+    }
+    return CensusList;
 }
 struct CensusData
 {
@@ -37,11 +78,9 @@ std::vector<CensusData> ReadCensusCsv(std::string fileName = "census.csv")
     std::ifstream fin(fileName);
 
     std::string line;
-    // getline(fin, line);
     while (getline(fin, line))
     {
         std::istringstream sin(line);
-        // std::cout << line << '\n';
         std::string info;
         std::vector<std::string> infoList;
 
@@ -62,7 +101,6 @@ std::vector<CensusData> ReadCensusCsv(std::string fileName = "census.csv")
         CensusList.push_back(dataBase);
     }
     return CensusList;
-    // epsilon = 1;
 }
 void showCensus(std::vector<CensusData> &CensusList)
 {

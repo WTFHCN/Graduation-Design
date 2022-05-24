@@ -7,11 +7,17 @@ import csv
 from pytest import mark
 
 
+def calc(x):
+    return pow(2, x)-1
+
+
 if __name__ == '__main__':
 
-    x = np.array([8, 9, 10, 11, 12, 13])
-    # plt.xticks(x)
-
+    x = np.array([calc(8), calc(9), calc(10), calc(11), calc(12), calc(13)])
+    px = np.array([700,  2000, 4000, 8000])
+    plt.xticks(px)
+    plt.xlabel("T")
+    plt.ylabel("Squared Error")
     with open('AgeTest.csv')as f:
         f_csv = csv.reader(f)
         for row in f_csv:
@@ -22,4 +28,5 @@ if __name__ == '__main__':
 
             plt.plot(x, np.array(np_csv), marker='o', label=row[0])
     plt.legend()
-    plt.show()
+    # plt.show()
+    plt.savefig("2333.png")
