@@ -3,4 +3,6 @@
 *.vscode
 *.dSYM
 build
+*.png
+*.exe
 # vscode

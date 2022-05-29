@@ -10,7 +10,7 @@ void WirteCsv(std::string &fileName, std::vector<std::string> &name, std::vector
     std::ofstream outFile;
     // assert(name.size() == data.size());
     outFile.open(fileName, std::ios::out);
-    for (int i = 3; i < error.size(); i++)
+    for (int i = 1; i < error.size(); i++)
     {
         // std::std::cout << name[i] << '\n';
         outFile << name[i];

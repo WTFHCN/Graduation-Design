@@ -16,7 +16,14 @@ std::vector<std::string> algorithmName = {
     "TM",
     "BM",
     "Hybrid Mechanism",
-    "FDA Mechanism",
+    "FDA",
+};
+std::vector<std::string> lenName = {
+    "reality",
+    "len=25",
+    "len=50",
+    "len=100",
+    "len=200",
 };
 
 class PublishAlgorithm
@@ -258,8 +265,7 @@ public:
         return ans;
     }
 };
-
-void CensusAgeTest(int M, double e, std::vector<std::vector<double>> &errorList)
+void CensusIncomeTest(int M, double e, std::vector<std::vector<double>> &errorList, std::vector<std::vector<double>> &timeList)
 {
     int T = (1 << M) - 1;
     auto CensusList = ReadCensusCsv();
@@ -270,6 +276,7 @@ void CensusAgeTest(int M, double e, std::vector<std::vector<double>> &errorList)
     int tt = 10;
 
     std::vector<double> error(NUM);
+    std::vector<double> timeSpent(NUM);
     for (int t = 0; t < tt; t++)
     {
         std::vector<PublishAlgorithm *> algorithmMechanism(NUM);
@@ -278,13 +285,15 @@ void CensusAgeTest(int M, double e, std::vector<std::vector<double>> &errorList)
         algorithmMechanism[2] = new algorithm2(e);
         algorithmMechanism[3] = new algorithm3(e, T);
         algorithmMechanism[4] = new algorithm4(e, T);
-        algorithmMechanism[5] = new algorithm5(e, T, 32);
+        algorithmMechanism[5] = new algorithm5(e, T, 100);
         algorithmMechanism[6] = new algorithm6(e, M);
         for (int i = 0; i < T; i++)
         {
             for (int j = 0; j < NUM; j++)
             {
-                testData[j][i] = algorithmMechanism[j]->add(CensusList[i].age);
+                auto t = clock();
+                testData[j][i] = algorithmMechanism[j]->add(CensusList[i].income);
+                timeSpent[j] += (double)(clock() - t) / CLOCKS_PER_SEC;
             }
         }
         for (int j = 1; j < NUM; j++)
@@ -296,9 +305,10 @@ void CensusAgeTest(int M, double e, std::vector<std::vector<double>> &errorList)
     for (int j = 1; j < NUM; j++)
     {
         errorList[j][M] = error[j] / tt;
+        timeList[j][M] = timeSpent[j] / tt;
     }
 }
-void RetailTest(int M, double e, std::vector<std::vector<double>> &errorList)
+void RetailTest(int M, double e, std::vector<std::vector<double>> &errorList, std::vector<std::vector<double>> &timeList)
 {
     int T = (1 << M) - 1;
     auto RetailList = ReadRetailCsv();
@@ -309,6 +319,7 @@ void RetailTest(int M, double e, std::vector<std::vector<double>> &errorList)
     int tt = 10;
 
     std::vector<double> error(NUM);
+    std::vector<double> timeSpent(NUM);
     for (int t = 0; t < tt; t++)
     {
         std::vector<PublishAlgorithm *> algorithmMechanism(NUM);
@@ -317,13 +328,15 @@ void RetailTest(int M, double e, std::vector<std::vector<double>> &errorList)
         algorithmMechanism[2] = new algorithm2(e);
         algorithmMechanism[3] = new algorithm3(e, T);
         algorithmMechanism[4] = new algorithm4(e, T);
-        algorithmMechanism[5] = new algorithm5(e, T, 32);
+        algorithmMechanism[5] = new algorithm5(e, T, 100);
         algorithmMechanism[6] = new algorithm6(e, M);
         for (int i = 0; i < T; i++)
         {
             for (int j = 0; j < NUM; j++)
             {
+                auto t = clock();
                 testData[j][i] = algorithmMechanism[j]->add(RetailList[i].UnitPrice);
+                timeSpent[j] += (double)(clock() - t) / CLOCKS_PER_SEC;
             }
         }
         for (int j = 1; j < NUM; j++)
@@ -335,33 +348,90 @@ void RetailTest(int M, double e, std::vector<std::vector<double>> &errorList)
     for (int j = 1; j < NUM; j++)
     {
         errorList[j][M] = error[j] / tt;
+        timeList[j][M] = timeSpent[j] / tt;
     }
 }
-void test1()
+void lenTest(int M, double e, std::vector<std::vector<double>> &errorList)
 {
-    std::string AgeTestName = "AgeTest.csv";
+    int T = (1 << M) - 1;
+    int N = lenName.size();
+
+    auto RetailList = ReadRetailCsv();
+    assert(int(RetailList.size()) >= T);
+    std::vector<std::vector<double>>
+        testData(N, std::vector<double>(T));
+
+    int tt = 10;
+
+    std::vector<double> error(N);
+    for (int t = 0; t < tt; t++)
+    {
+        std::vector<PublishAlgorithm *> algorithmMechanism(N);
+        algorithmMechanism[0] = new algorithm0(e);
+        algorithmMechanism[1] = new algorithm5(e, T, 25);
+        algorithmMechanism[2] = new algorithm5(e, T, 50);
+        algorithmMechanism[3] = new algorithm5(e, T, 100);
+        algorithmMechanism[4] = new algorithm5(e, T, 200);
+        for (int i = 0; i < T; i++)
+        {
+            for (int j = 0; j < N; j++)
+            {
+                testData[j][i] = algorithmMechanism[j]->add(RetailList[i].UnitPrice);
+            }
+        }
+        for (int j = 1; j < N; j++)
+        {
+            error[j] += util::CalcError(testData[0], testData[j]);
+        }
+    }
+
+    for (int j = 1; j < N; j++)
+    {
+        errorList[j][M] = error[j] / tt;
+    }
+}
+void test1(double e)
+{
+    std::string outputName = std::to_string(int(e * 100)) + "Income.csv";
+    int maxM = 14;
+    std::vector<std::vector<double>> errorList(NUM, std::vector<double>(maxM));
+    std::vector<std::vector<double>> timeList(NUM, std::vector<double>(maxM));
+    for (int i = 8; i < maxM; i++)
+    {
+        CensusIncomeTest(i, e, errorList, timeList);
+    }
+    WirteCsv(outputName, algorithmName, errorList);
+}
+void test2(double e)
+{
+    std::string outputName = std::to_string(int(e * 100)) + "Retail.csv";
+    int maxM = 14;
+    std::vector<std::vector<double>> errorList(NUM, std::vector<double>(maxM));
+    std::vector<std::vector<double>> timeList(NUM, std::vector<double>(maxM));
+
+    for (int i = 8; i < maxM; i++)
+    {
+        RetailTest(i, e, errorList, timeList);
+    }
+    WirteCsv(outputName, algorithmName, errorList);
+}
+void test3(double e)
+{
+    std::string outputName = std::to_string(int(e * 100)) + "lenRetail.csv";
     int maxM = 14;
     std::vector<std::vector<double>> errorList(NUM, std::vector<double>(maxM));
     for (int i = 8; i < maxM; i++)
     {
-        CensusAgeTest(i, 0.01, errorList);
+        lenTest(i, e, errorList);
     }
-    WirteCsv(AgeTestName, algorithmName, errorList);
-}
-void test2()
-{
-    std::string AgeTestName = "AgeTest.csv";
-    int maxM = 14;
-    std::vector<std::vector<double>> errorList(NUM, std::vector<double>(maxM));
-    for (int i = 8; i < maxM; i++)
-    {
-        RetailTest(i, 0.01, errorList);
-    }
-    WirteCsv(AgeTestName, algorithmName, errorList);
+    WirteCsv(outputName, lenName, errorList);
 }
 int main()
 {
-
-    test1();
-    // test2();
+    // for (double e = 0.01; e <= 1; e *= 10)
+    // {
+    //     test1(e);
+    //     test2(e);
+    // }
+    test3(0.01);
 }
