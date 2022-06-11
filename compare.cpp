@@ -426,6 +426,19 @@ void test3(double e)
     }
     WirteCsv(outputName, lenName, errorList);
 }
+void test4(double e)
+{
+    std::string outputName = "time" + std::to_string(int(e * 100)) + "Retail.csv";
+    int maxM = 14;
+    std::vector<std::vector<double>> errorList(NUM, std::vector<double>(maxM));
+    std::vector<std::vector<double>> timeList(NUM, std::vector<double>(maxM));
+    for (int i = 12; i < 16; i++)
+    {
+        std::cout << i << '\n';
+        RetailTest(i, e, errorList, timeList);
+    }
+    WirteCsv(outputName, algorithmName, timeList);
+}
 int main()
 {
     // for (double e = 0.01; e <= 1; e *= 10)
@@ -434,4 +447,5 @@ int main()
     //     test2(e);
     // }
     test3(0.01);
+    // test4(0.1);
 }

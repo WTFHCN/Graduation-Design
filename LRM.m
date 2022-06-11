@@ -4,13 +4,18 @@ rand ('seed',0);
 randn ('seed',0);
 
 % number of queries
-m  = 500;
+m  = 512;
 
 % domain size
-n  = 500;
+n  = 512;
+ 
+W=zeros(m,n);
+for i=1:m,
+    for j=1:i,
+        W(i,j)=1;
+    end
+end
 
-% Generate the workload
-W=randn(m,n); W(W<0)=0; W(W>0)=1;
 
 % Generate the domain data
 domain_x = randn(n,1);
